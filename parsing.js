@@ -1,7 +1,8 @@
 var http = require('http'),
     request = require('request'),
     jsdom = require('jsdom'),
-    iconv = require('iconv');
+    iconv = require('iconv'),
+    win; // window instance - workaround for memory leaks
 
 /*
  * primitivni fce pro zakodovani parametru do url (bez escapovani)
@@ -39,14 +40,24 @@ function pspRequest(url, params, callback) {
         var conv = new iconv.Iconv('windows-1250', 'utf8');
         body = conv.convert(body).toString();
 
-        jsdom.env({
-            html: body,
-            scripts: [
-            'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'
-            ],
-        }, function (err, window) {
-            callback(window.jQuery);
-        });
+        // if there is no window instance we create new one,
+        // otherwise we reuse the old one and set innerHTML (to prevent memory leaks)
+        // probably breaks paralelism and introduces race condition, but it won't matter in final application
+        // see http://stackoverflow.com/a/7252892
+        if (!win) {
+            jsdom.env({
+                html: body,
+                scripts: [
+                'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'
+                ],
+            }, function (err, window) {
+                win = window;
+                callback(window.jQuery);
+            });
+        } else {
+            win.document.innerHTML = body;
+            callback(win.jQuery);
+        }
     });
 }
 

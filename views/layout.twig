@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>PSP</title>
+</head>
+</html>
+<body>
+	<div class="container" id="main">
+		{% if flash.warn %}
+			<div class="alert-message error"><p>{{ flash.warn }}</p></div>
+		{% endif %}
+		{% if flash.info %}
+			<div class="alert-message success"><p>{{ flash.info }}</p></div>
+		{% endif %}
+
+		{% block body %}{% endblock %}
+	</div>
+
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="/public/scripts/web.js"></script>
+</body>

@@ -13,11 +13,11 @@ var MetaController = require('./controllers/MetaController');
 var templateHelpers = require('./app/templateHelpers');
 var NotFound = require('./app/NotFound');
 var Unauthorized = require('./app/Unauthorized');
-var Parsing = require('./parsing');
 var Model = require('./models/model');
+var DataHandler = require('./DataHandler');
 
-var parsing = new Parsing();
 var model = new Model(dbAccess);
+var dataHandler = new DataHandler(dbAccess, model);
 
 // Basic create server and configure
 var app = express.createServer();
@@ -77,9 +77,18 @@ app.get('/', function(req, res) {
     res.render('root');
 });
 
+// first time ever start action
+model.lastUpdate(function(data) {
+	if (data == null) {
+		dataHandler.createSnapshot();
+	}
+});
+
 // periodic reading of new data
-var callback = function(data) {
-	;
-};
-setInterval(function(){parsing.getSeznamSchuzi(null, callback);}, model.updateIntervalMs());
+setInterval(function(){
+	dbAccess.getDb().collection('appData', function(err, collection) {
+        collection.update({name:'lastCheck'}, {$set:{value:(new Date()).getTime()}}, {safe:true}, function(err, result) {});
+    });
+	dataHandler.createSnapshot();
+}, model.updateIntervalMs());
 console.log("Reader initialized");

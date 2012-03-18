@@ -4,166 +4,180 @@ var http = require('http'),
     iconv = require('iconv'),
     win; // window instance - workaround for memory leaks
 
-/*
- * primitivni fce pro zakodovani parametru do url (bez escapovani)
- * priklad: {a:'b', c:'d'}  => 'a=b&c=d'
- */
-function encodeParams(params) {
-    var queryString, arr = [];
-    for (p in params) {
-        arr.push(p + '=' + params[p]);
-    }
-    queryString = arr.join('&');
-    if (queryString) {
-        queryString = '?' + queryString;
-    }
-    return queryString;
+//constructor
+function Parsing() {
+	console.log("Parser initialized");
 }
 
-/*
- * fce co udela request na stranky snemovny
- * argumenty:
- *     string url .. napr. 'hlasovani.sqw'
- *     object params .. napr {o:6} pro seste volebni obdobi
- *     function callback - po nacteni bude zavolana s jednim parametrem jQuery objektem v kontextu dane stranky
- */
-function pspRequest(url, params, callback) {
-    var uri = 'http://www.psp.cz/sqw/' + url + encodeParams(params);
-    console.log('pspRequest: ' + uri);
-    request({ uri: uri, encoding: 'binary' }, function (error, response, body) {
-        if (error && response.statusCode !== 200) {
-            console.log('Error when contacting server')
-        }
+Parsing.prototype = {
+	/*
+	 * primitivni fce pro zakodovani parametru do url (bez escapovani)
+	 * priklad: {a:'b', c:'d'}  => 'a=b&c=d'
+	 */
+	encodeParams: function(params) {
+	    var queryString, arr = [];
+	    for (p in params) {
+	        arr.push(p + '=' + params[p]);
+	    }
+	    queryString = arr.join('&');
+	    if (queryString) {
+	        queryString = '?' + queryString;
+	    }
+	    return queryString;
+	},
 
-        // vraceji to v cp1250, prevedeme do utf8
-        body = new Buffer(body, 'binary');
-        var conv = new iconv.Iconv('windows-1250', 'utf8');
-        body = conv.convert(body).toString();
+	/*
+	 * fce co udela request na stranky snemovny
+	 * argumenty:
+	 *     string url .. napr. 'hlasovani.sqw'
+	 *     object params .. napr {o:6} pro seste volebni obdobi
+	 *     function callback - po nacteni bude zavolana s jednim parametrem jQuery objektem v kontextu dane stranky
+	 */
+	pspRequest: function(url, params, callback) {
+	    var uri = 'http://www.psp.cz/sqw/' + url + this.encodeParams(params);
+	    console.log('pspRequest: ' + uri);
+	    request({ uri: uri, encoding: 'binary' }, function (error, response, body) {
+	        if (error && response.statusCode !== 200) {
+	            console.log('Error when contacting server');
+	        }
 
-        // if there is no window instance we create new one,
-        // otherwise we reuse the old one and set innerHTML (to prevent memory leaks)
-        // probably breaks paralelism and introduces race condition, but it won't matter in final application
-        // see http://stackoverflow.com/a/7252892
-        if (!win) {
-            jsdom.env({
-                html: body,
-                scripts: [
-                'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'
-                ],
-            }, function (err, window) {
-                win = window;
-                callback(window.jQuery);
-            });
-        } else {
-            win.document.innerHTML = body;
-            callback(win.jQuery);
-        }
-    });
-}
+	        // vraceji to v cp1250, prevedeme do utf8
+	        body = new Buffer(body, 'binary');
+	        var conv = new iconv.Iconv('windows-1250', 'utf8');
+	        body = conv.convert(body).toString();
 
-/*
- * nacte seznam schuzi pro dane volebni obdobi
- *      pokud je obdobi null tak nacte aktualni obdobi
- */
-function getSeznamSchuzi(obdobi, callback) {
-    pspRequest('hlasovani.sqw', (obdobi ? {o:obdobi} : {}), function($) {
-        var cisloObdobi = $('h4>a').attr('href').match(/[&?]o=(\d)/)[1],
-            schuze = $('#text-related-secmenu>.text>b>a').map(function() { return {title: $(this).text(), url: $(this).attr('href')} }).get();
-        callback({obdobi: cisloObdobi, schuze: schuze});
-    });
-}
+	        // if there is no window instance we create new one,
+	        // otherwise we reuse the old one and set innerHTML (to prevent memory leaks)
+	        // probably breaks paralelism and introduces race condition, but it won't matter in final application
+	        // see http://stackoverflow.com/a/7252892
+	        if (!win) {
+	            jsdom.env({
+	                html: body,
+	                scripts: [
+	                'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'
+	                ],
+	            }, function (err, window) {
+	                win = window;
+	                callback(window.jQuery);
+	            });
+	        } else {
+	            win.document.innerHTML = body;
+	            callback(win.jQuery);
+	        };
+	    });
+	},
 
-/*
- * pomocna funkce - vyparsuje seznam hlasovani
- */
-function parseSeznamHlasovani($) {
-    var hlasovani = $('#text-related-secmenu table tr').slice(1).map(function () {
-        var cols = $(this).find('td');
-        return {
-            title: cols.eq(3).text(),
-            number: cols.eq(1).find('a').text(),
-            url: cols.eq(1).find('a').attr('href'),
-        };
-    }).get();
-    return hlasovani;
-}
+	/*
+	 * nacte seznam schuzi pro dane volebni obdobi
+	 *      pokud je obdobi null tak nacte aktualni obdobi
+	 */
+	getSeznamSchuzi: function(obdobi, callback) {
+	    this.pspRequest('hlasovani.sqw', (obdobi ? {o:obdobi} : {}), function($) {
+	        var cisloObdobi = $('h4>a').attr('href').match(/[&?]o=(\d)/)[1],
+	            schuze = $('#text-related-secmenu>.text>b>a').map(function() {
+	            	return {title: $(this).text().substring(0, $(this).text().indexOf('.')),
+	            		url: $(this).attr('href')};
+	            }).get();
+	        callback({obdobi: cisloObdobi, schuze: schuze});
+	    });
+	},
 
-/*
- * nacte seznam hlasovani se schuze v danem obdobi
- */
-function getSeznamHlasovani(obdobi, schuze, callback) {
-    var params = {o: obdobi, s: schuze};
-    pspRequest('phlasa.sqw', params, function($) {
-        var ret = parseSeznamHlasovani($);
+	/*
+	 * pomocna funkce - vyparsuje seznam hlasovani
+	 */
+	parseSeznamHlasovani: function($) {
+	    var hlasovani = $('#text-related-secmenu table tr').slice(1).map(function () {
+	        var cols = $(this).find('td');
+	        return {
+	            title: cols.eq(3).text(),
+	            number: cols.eq(1).find('a').text(),
+	            url: cols.eq(1).find('a').attr('href'),
+	        };
+	    }).get();
+	    return hlasovani;
+	},
 
-        // zjistime pocet stranek
-        var page = 0, paginator = $('#text-related-secmenu center:eq(1)');
-        if (paginator.length > 0) {
-            page = parseInt(paginator.find('a').last().text(), 10);
-        }
+	/*
+	 * nacte seznam hlasovani se schuze v danem obdobi
+	 */
+	getSeznamHlasovani: function(obdobi, schuze, callback) {
+	    var params = {o: obdobi, s: schuze};
+	    this.pspRequest('phlasa.sqw', params, function($) {
+	        var ret = Parsing.prototype.parseSeznamHlasovani($);
 
-        // nacteme zbyvajici stranky (rekurzivni fci.. tim zajistime ze to bude v poradi za sebou)
-        function loadPages(i) {
-            if (i <= page) {
-                params.pg = i;
-                pspRequest('phlasa.sqw', params, function($) {
-                    ret = ret.concat(parseSeznamHlasovani($));
-                    loadPages(i+1);
-                });
-            } else {
-                callback(ret);
-            }
-        }
+	        // zjistime pocet stranek
+	        var page = 0, paginator = $('#text-related-secmenu center:eq(1)');
+	        if (paginator.length > 0) {
+	            page = parseInt(paginator.find('a').last().text(), 10);
+	        }
 
-        // prvni stranku uz mame, nacitame od druhe (cislovani od 1)
-        loadPages(2);
+	        // nacteme zbyvajici stranky (rekurzivni fci.. tim zajistime ze to bude v poradi za sebou)
+	        function loadPages(i) {
+	            if (i <= page) {
+	                params.pg = i;
+	                Parsing.prototype.pspRequest('phlasa.sqw', params, function($) {
+	                    ret = ret.concat(Parsing.prototype.parseSeznamHlasovani($));
+	                    loadPages(i+1);
+	                });
+	            } else {
+	                callback(ret);
+	            };
+	        }
 
-    });
-}
+	        // prvni stranku uz mame, nacitame od druhe (cislovani od 1)
+	        loadPages(2);
 
-/*
- * nacte vysledek z hlasovani a jednotlive akce poslancu
- * akce jsou [A] ANO, [N] NE, [0] NEPŘIHLÁŠEN, [M] OMLUVEN, [Z] ZDRŽEL SE
- */
-function getHlasovani(url, callback) {
-    pspRequest(url, {}, function($) {
-        var content = $('#text-related-secmenu');
+	    });
+	},
 
-        var strana = '', hlasy = [];
-        content.find('center:eq(1) tr').each(function(i, item) {
-            if ($(item).find('h3').length > 0) {
-                strana = $(item).find('h3').text();
-            } else {
-                poslanci = $(item).find('td');
-                for (var i = 0, len = poslanci.length; i < len; i += 2) {
-                    hlasy.push({
-                        akce: poslanci.eq(i).text(),
-                        poslanec: {
-                            jmeno: poslanci.eq(i+1).text(),
-                            id: poslanci.eq(i+1).find('a').attr('href').match(/[&?]id=(\d+)/)[1],
-                            strana: strana
-                        }
-                    });
-                }
-            }
+	/*
+	 * nacte vysledek z hlasovani a jednotlive akce poslancu
+	 * akce jsou [A] ANO, [N] NE, [0] NEPŘIHLÁŠEN, [M] OMLUVEN, [Z] ZDRŽEL SE
+	 */
+	getHlasovani: function(url, callback) {
+	    this.pspRequest(url, {}, function($) {
+	        var content = $('#text-related-secmenu');
 
-        });
+	        var strana = '', hlasy = [];
+	        content.find('center:eq(1) tr').each(function(i, item) {
+	            if ($(item).find('h3').length > 0) {
+	                strana = $(item).find('h3').text();
+	            } else {
+	                poslanci = $(item).find('td');
+	                for (var i = 0, len = poslanci.length; i < len; i += 2) {
+	                    hlasy.push({
+	                        akce: poslanci.eq(i).text(),
+	                        poslanec: {
+	                            jmeno: poslanci.eq(i+1).text().replace(/^\s+|\s+$/g, ''),
+	                            id: poslanci.eq(i+1).find('a').attr('href').match(/[&?]id=(\d+)/)[1],
+	                            strana: strana
+	                        }
+	                    });
+	                }
+	            }
 
-        var info = content.find('center:eq(0)').text();
+	        });
 
-        callback({
-            prijato: !!info.match('PŘIJAT'),
-            pritomno: parseInt(info.match(/PŘÍTOMNO=(\d+)/)[1], 10),
-            jetreba: parseInt(info.match(/JE TŘEBA=(\d+)/)[1], 10),
-            ano: parseInt(info.match(/ANO=(\d+)/)[1], 10),
-            ne: parseInt(info.match(/NE=(\d+)/)[1], 10),
-            hlasy: hlasy
-        })
-    });
-}
+	        var info = content.find('center:eq(0)').text();
+
+	        callback({
+	            prijato: !!info.match('PŘIJAT'),
+	            pritomno: parseInt(info.match(/PŘÍTOMNO=(\d+)/)[1], 10),
+	            jetreba: parseInt(info.match(/JE TŘEBA=(\d+)/)[1], 10),
+	            ano: parseInt(info.match(/ANO=(\d+)/)[1], 10),
+	            ne: parseInt(info.match(/NE=(\d+)/)[1], 10),
+	            hlasy: hlasy
+	        });
+	    });
+	}
+};
+
+
+module.exports = Parsing;
 
 // demo parsovacich funkci
 http.createServer(function (request, response) {
+	var parsing = new Parsing();
     switch (request.url) {
         case '/':
             response.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
@@ -171,19 +185,19 @@ http.createServer(function (request, response) {
             break;
         case '/seznam-schuzi':
             response.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-            getSeznamSchuzi(null, function(data) {
+            parsing.getSeznamSchuzi(null, function(data) {
                 response.end(JSON.stringify(data));
             });
             break;
         case '/seznam-hlasovani':
             response.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-            getSeznamHlasovani(6, 33, function(data) {
+            parsing.getSeznamHlasovani(6, 33, function(data) {
                 response.end(JSON.stringify(data));
             });
             break;
         case '/hlasovani':
             response.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-            getHlasovani('hlasy.sqw?G=55588&o=6', function(data) {
+            parsing.getHlasovani('hlasy.sqw?G=55588&o=6', function(data) {
                 response.end(JSON.stringify(data));
             });
             break;

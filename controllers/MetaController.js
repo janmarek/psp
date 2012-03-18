@@ -1,12 +1,12 @@
 // imports
 var controllerHelpers = require('../app/controllerHelpers'),
 	xmlFactory = require('../app/XmlBuilderFactory'),
-	request = require('request'),
-	model = require('../models/model');
+	request = require('request')
+	model = null;
 
 // constructor
-function MetaController()
-{
+function MetaController(iModel) {
+	model = iModel;
 }
 
 MetaController.prototype = {

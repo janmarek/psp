@@ -3,14 +3,23 @@ var express = require('express');
 var MemStore = require('connect/lib/middleware/session/memory');
 var twig = require('twig');
 
+//connects to the MongoDb
+var DbAccess = require('./DbAccess');
+var dbAccess = new DbAccess();
+
 // import controllers
 var MetaController = require('./controllers/MetaController');
 
 var templateHelpers = require('./app/templateHelpers');
 var NotFound = require('./app/NotFound');
 var Unauthorized = require('./app/Unauthorized');
+var Parsing = require('./parsing');
+var Model = require('./models/model');
 
-// Basic creat server and configure
+var parsing = new Parsing();
+var model = new Model(dbAccess);
+
+// Basic create server and configure
 var app = express.createServer();
 app.listen(8080);
 app.configure(function() {
@@ -41,7 +50,7 @@ app.set('view engine', 'twig');
 app.set("view options", {layout: false});
 
 var controllers = [
-	new MetaController()
+	new MetaController(model)
 ];
 
 controllers.forEach(function (controller) {
@@ -67,3 +76,10 @@ app.error(function(err, req, res, next){
 app.get('/', function(req, res) {
     res.render('root');
 });
+
+// periodic reading of new data
+var callback = function(data) {
+	;
+};
+setInterval(function(){parsing.getSeznamSchuzi(null, callback);}, model.updateIntervalMs());
+console.log("Reader initialized");

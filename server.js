@@ -77,18 +77,23 @@ app.get('/', function(req, res) {
     res.render('root');
 });
 
-// first time ever start action
-model.lastUpdate(function(data) {
-	if (data == null) {
-		dataHandler.createSnapshot();
-	}
-});
+setTimeout(function(){
+	console.log('First time ever start action');
+	// first time ever start action
+	model.lastUpdate(function(data) {
+		if (data == null) {
+			var date = (new Date()).getTime();
+			dataHandler.createSnapshot(date);
+		}
+	});
+}, 60000);
 
 // periodic reading of new data
 setInterval(function(){
+	var date = (new Date()).getTime();
 	dbAccess.getDb().collection('appData', function(err, collection) {
-        collection.update({name:'lastCheck'}, {$set:{value:(new Date()).getTime()}}, {safe:true}, function(err, result) {});
+        collection.update({name:'lastCheck'}, {$set:{value:date}}, {safe:true}, function(err, result) {});
     });
-	dataHandler.createSnapshot();
+	dataHandler.createSnapshot(date);
 }, model.updateIntervalMs());
 console.log("Reader initialized");

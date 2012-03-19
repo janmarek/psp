@@ -2,7 +2,7 @@
 var diff = 24*60*60*1000,
 	num = 50,
 	t = (new Date).getTime() - 50*diff;
-	updateIntervalMinutes = 1,
+	updateIntervalMinutes = 1440,
 	dbAccess = null;
 
 // constructor
@@ -24,6 +24,7 @@ Model.prototype = {
 	},
 	updateInterval: function() { return updateIntervalMinutes; /* 1 day = 1440 minutes */ },
 	updateIntervalMs: function() { return updateIntervalMinutes * 60 * 1000;},
+	maxMeetingsInSnapshot: function() { return 5;},
 	snapshots: function(callback) {
 		var snapshots = [];
 		dbAccess.getDb().collection('snapshots', function(err, collection) {

@@ -25,7 +25,8 @@ function DbAccess() {
 		        	}
 		        });
 			});
-			db.createCollection('data', function(err, collection) {});
+			db.createCollection('dataSchuze', function(err, collection) {});
+			db.createCollection('dataPoslanci', function(err, collection) {});
 			db.createCollection('snapshots', function(err, collection) {});
 			console.log("We are connected to database");
 		} else {

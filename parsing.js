@@ -104,7 +104,6 @@ Parsing.prototype = {
 	    var params = {o: obdobi, s: schuze};
 	    this.pspRequest('phlasa.sqw', params, function($) {
 	        var ret = Parsing.prototype.parseSeznamHlasovani($);
-
 	        // zjistime pocet stranek
 	        var page = 0, paginator = $('#text-related-secmenu center:eq(1)');
 	        if (paginator.length > 0) {
@@ -134,10 +133,10 @@ Parsing.prototype = {
 	 * nacte vysledek z hlasovani a jednotlive akce poslancu
 	 * akce jsou [A] ANO, [N] NE, [0] NEPŘIHLÁŠEN, [M] OMLUVEN, [Z] ZDRŽEL SE
 	 */
-	getHlasovani: function(url, callback) {
+	getHlasovani: function(url, seznamHlasovaniObj, callback) {
 	    this.pspRequest(url, {}, function($) {
 	        var content = $('#text-related-secmenu');
-
+	        console.log(url);
 	        var strana = '', hlasy = [];
 	        content.find('center:eq(1) tr').each(function(i, item) {
 	            if ($(item).find('h3').length > 0) {
@@ -160,14 +159,26 @@ Parsing.prototype = {
 
 	        var info = content.find('center:eq(0)').text();
 
-	        callback({
-	            prijato: !!info.match('PŘIJAT'),
-	            pritomno: parseInt(info.match(/PŘÍTOMNO=(\d+)/)[1], 10),
-	            jetreba: parseInt(info.match(/JE TŘEBA=(\d+)/)[1], 10),
-	            ano: parseInt(info.match(/ANO=(\d+)/)[1], 10),
-	            ne: parseInt(info.match(/NE=(\d+)/)[1], 10),
-	            hlasy: hlasy
-	        });
+	        var ret = null;
+	        try {
+	        	ret = {
+		            prijato: !!info.match('PŘIJAT'),
+		            pritomno: parseInt(info.match(/PŘÍTOMNO=(\d+)/)[1], 10),
+		            jetreba: parseInt(info.match(/JE TŘEBA=(\d+)/)[1], 10),
+		            ano: parseInt(info.match(/ANO=(\d+)/)[1], 10),
+		            ne: parseInt(info.match(/NE=(\d+)/)[1], 10),
+		            hlasy: hlasy,
+		            error: false,
+		            url: url
+		        };
+			} catch (e) {
+				ret = {
+		            error: true,
+		            url: url
+		        };
+			}
+	        
+	        callback(ret, seznamHlasovaniObj);
 	    });
 	}
 };
@@ -191,7 +202,7 @@ http.createServer(function (request, response) {
             break;
         case '/seznam-hlasovani':
             response.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-            parsing.getSeznamHlasovani(6, 33, function(data) {
+            parsing.getSeznamHlasovani(6, 36, function(data) {
                 response.end(JSON.stringify(data));
             });
             break;

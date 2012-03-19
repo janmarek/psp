@@ -78,10 +78,10 @@ app.get('/', function(req, res) {
 });
 
 setTimeout(function(){
-	console.log('First time ever start action');
 	// first time ever start action
 	model.lastUpdate(function(data) {
 		if (data == null) {
+			console.log('First time ever start action');
 			var date = (new Date()).getTime();
 			dataHandler.createSnapshot(date);
 		}

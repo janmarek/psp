@@ -46,10 +46,40 @@ MetaController.prototype = {
 	snapshotsAction: function(req, res)
 	{
 		if (req.headers.accept && req.headers.accept.match(/image\/png/)) {
-			model.snapshots(function(data) {
-				// TODO: vygenerovat z dat
-				var uri = 'http://chart.apis.google.com/chart?chxl=2:|19.3.2012&chxp=2,10,20,30,40&chxr=1,5,100000|2,0,50&chxs=0,0000FF,11.5,0,lt,676767|1,FF0000,10.5,0,lt,676767|2,676767,11.5,0,lt,676767&chxt=y,y,x&chs=440x220&cht=lc&chco=3072F3,FF0000&chds=0,95,5,10000&chd=t:31.632,234|3192.86,12432&chdl=Nodes|Edges&chdlp=b&chls=1|1&chma=5,5,5,25|40'
-	
+			model.snapshots(function(s) {
+				var nlabels = Math.floor(s.length / 5),
+					offset = Math.floor(nlabels/2);
+					labels = s.filter(function(item, i) { return (i+offset)%(nlabels) === 0; });
+				
+			var uri = ['http://chart.apis.google.com/chart',
+				'?chxs=0,3072F3,11.5,0,lt,676767|1,FF0000,10.5,0,lt,676767|2,676767,11.5,0,lt,676767',
+				'&chxt=y,y,x',
+				'&chs=440x220',
+				'&cht=lc',
+				'&chco=3072F3,FF0000',
+				'&chds=a',
+				'&chdl=Nodes|Edges',
+				'&chdlp=b',
+				'&chls=1|1',
+				'&chma=5,5,5,25|40',
+				'&chxr=2,0,',
+				s.length,
+				'|0,0,',
+				s.reduce(function(a,b) {return Math.max(a, b.node);}, 0),
+				'|1,0,',
+				s.reduce(function(a,b) {return Math.max(a, b.edge);}, 0),
+				'&chd=t:',
+				s.map(function(item) { return item.node; }).join(','),
+				'|',
+				s.map(function(item) { return item.edge; }).join(','),
+				'&chxl=2:|',
+				labels.map(function(item) { var d = item.created; return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }).join('|'),
+				'&chxp=2,',
+				labels.map(function(item, i) { return i*nlabels+offset; }).join(',')
+				];
+
+				uri = uri.join('');
+				
 				request({ uri: uri, encoding: 'binary' }, function (error, response, body) {
 					res.header('Content-Type', 'image/png');
 					res.end(new Buffer(body, 'binary'));

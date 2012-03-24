@@ -27,7 +27,7 @@ DataHandler.prototype = {
 		        		for(var i in items) {
 		        			if (items[i].schuze != null) {
 		        				for(var j in items[i].schuze) {
-		        					schuzeStored.push({obdobi: new Date(items[i].schuze[j].obdobi), id: items[i].schuze[j].id});
+		        					schuzeStored.push({obdobi: items[i].schuze[j].obdobi, id: items[i].schuze[j].id});
 		        				}        				
 		        			}
 		        		}
@@ -39,7 +39,7 @@ DataHandler.prototype = {
 		        		var newOne = schuzeNew.schuze[i];
 		        		var found = false;
 		        		for(var j in schuzeStored) {
-		        			if (newOne.title == schuzeStored[j].id && schuzeNew.obdobi == schuzeStored[j].id) {
+		        			if (newOne.title == schuzeStored[j].id && schuzeNew.obdobi == schuzeStored[j].obdobi) {
 		        				found = true;
 		        				break;
 		        			}
@@ -87,6 +87,9 @@ DataHandler.prototype = {
 																// deputy is node
 																//nodes++;
 															});
+															dbAccess.getDb().collection('snapshots', function(err, snapshotsCollection) {
+																snapshotsCollection.update({created:createDate}, {$set:{node:nodes, edge:edges}}, {upsert:true, safe:true}, function(err, resultN) {});
+												    	    });
 														}
 													});
 													var doc1 = {number:seznamHlasovaniObj.number, title:seznamHlasovaniObj.title,

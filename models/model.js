@@ -2,7 +2,7 @@
 var diff = 24*60*60*1000,
 	num = 50,
 	t = (new Date).getTime() - 50*diff;
-	updateIntervalMinutes = 1440,
+	updateIntervalMinutes = 360,
 	dbAccess = null;
 
 // constructor

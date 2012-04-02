@@ -9,14 +9,17 @@ var dbAccess = new DbAccess();
 
 // import controllers
 var MetaController = require('./controllers/MetaController');
+var ExportController = require('./controllers/ExportController');
 
 var templateHelpers = require('./app/templateHelpers');
 var NotFound = require('./app/NotFound');
 var Unauthorized = require('./app/Unauthorized');
 var Model = require('./models/model');
+var GexfExportModel = require('./models/GexfExportModel');
 var DataHandler = require('./DataHandler');
 
 var model = new Model(dbAccess);
+var gexfExportModel = new GexfExportModel(dbAccess.getDb());
 var dataHandler = new DataHandler(dbAccess, model);
 
 // Basic create server and configure
@@ -50,7 +53,8 @@ app.set('view engine', 'twig');
 app.set("view options", {layout: false});
 
 var controllers = [
-	new MetaController(model)
+	new MetaController(model),
+	new ExportController(gexfExportModel)
 ];
 
 controllers.forEach(function (controller) {

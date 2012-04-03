@@ -37,7 +37,7 @@ Parsing.prototype = {
 	    var uri = 'http://www.psp.cz/sqw/' + url + this.encodeParams(params);
 	    console.log('pspRequest: ' + uri);
 	    request({ uri: uri, encoding: 'binary' }, function (error, response, body) {
-	        if (error && response.statusCode !== 200) {
+	        if (error || response.statusCode !== 200) {
 	            console.log('Error when contacting server');
 	        }
 

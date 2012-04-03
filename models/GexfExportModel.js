@@ -91,13 +91,13 @@ GexfExportModel.prototype = {
 
 		var xml = [];
 		_(edges).forEach(function (edge, key) {
-			if (edge.points > 5) {
+			if (edge.points > 10) {
 				xml.push({
 					name: 'edge',
 					attrs: {
 						id: key,
-						from: edge.from,
-						to: edge.to,
+						source: edge.from,
+						target: edge.to,
 						weight: 1 + edge.points / 10
 					}
 				});

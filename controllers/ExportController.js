@@ -22,22 +22,25 @@ ExportController.prototype = {
 	 */
 	defaultAction: function(req, res)
 	{
-		this.model.getNodes(function (nodes) {
-			var data = [
-				{name: 'graph', attrs: {mode: "static", defaultedgetype: "undirected"}, children: [
-					{name: 'nodes', children: nodes},
-					{name: 'edges', children: []},
-				]}
-			];
+		var self = this;
+		this.model.getEdges(function (edges) {
+			self.model.getNodes(function (nodes) {
+				var data = [
+					{name: 'graph', attrs: {mode: "static", defaultedgetype: "undirected"}, children: [
+						{name: 'nodes', children: nodes},
+						{name: 'edges', children: edges},
+					]}
+				];
 
-			var doc = xmlFactory.create('gexf', data, {
-				xmlns: "http://www.gexf.net/1.2draft",
-				'xmlns:viz': "http://www.gexf.net/1.2draft/viz",
-				version: "1.2"
+				var doc = xmlFactory.create('gexf', data, {
+					xmlns: "http://www.gexf.net/1.2draft",
+					'xmlns:viz': "http://www.gexf.net/1.2draft/viz",
+					version: "1.2"
+				});
+
+		 		res.header('Content-Type', 'application/xml');
+		 		res.end(doc.toString({ pretty: true }));
 			});
-
-	 		res.header('Content-Type', 'application/xml');
-	 		res.end(doc.toString({ pretty: true }));
 		});
 	}
 }

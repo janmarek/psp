@@ -5,10 +5,10 @@ function Model(dbAccess) {
 }
 
 Model.prototype = {
-	lastUpdate: function(callback) {
+	lastUpdate: function (callback) {
 		var time = null;
-		this.dbAccess.getDb().collection('appData', function(err, collection) {
-	        collection.findOne({name: 'lastUpdate'}, function(err, item) {
+		this.dbAccess.getDb().collection('appData', function (err, collection) {
+	        collection.findOne({name: 'lastUpdate'}, function (err, item) {
 	        	if (item != null) {
 	        		time = item.value;
 	        	}
@@ -17,19 +17,19 @@ Model.prototype = {
 	    });
 	},
 
-	updateInterval: function() {
+	updateInterval: function () {
 		return this.updateIntervalMinutes; /* 1 day = 1440 minutes */
 	},
 
-	updateIntervalMs: function() {
+	updateIntervalMs: function () {
 		return this.updateIntervalMinutes * 60 * 1000;
 	},
 
-	maxMeetingsInSnapshot: function() {
+	maxMeetingsInSnapshot: function () {
 		return 5;
 	},
 
-	snapshots: function(callback) {
+	snapshots: function (callback) {
 		var snapshots = [];
 		this.dbAccess.getDb().collection('snapshots', function(err, collection) {
 			collection.find().toArray(function(err, items) {
@@ -43,10 +43,10 @@ Model.prototype = {
 	    });
 	},
 
-	poslanecMap: function(callback) {
+	poslanecMap: function (callback) {
 		var poslanci = [];
 
-		this.dbAccess.getDb().collection('dataPoslanci', function(err, collection) {
+		this.dbAccess.getDb().collection('dataPoslanci', function (err, collection) {
 			collection.find().toArray(function (err, items) {
 
 				items.forEach(function (item) {
@@ -59,6 +59,28 @@ Model.prototype = {
 				callback(poslanci);
 			})
 		})
+	},
+
+	allVotes: function (callback) {
+		var hlasovani = [];
+
+		this.dbAccess.getDb().collection('dataSchuze', function (err, collection) {
+			collection.find().toArray(function (err, meetings) {
+				meetings.forEach(function (meeting) {
+					meeting.hlasovani.forEach(function (hl) {
+						var votes = [];
+
+						hl.hlasy.forEach(function (vote) {
+							votes.push(vote);
+						});
+
+						hlasovani.push(votes);
+					})
+				});
+
+				callback(hlasovani);
+			});
+		});
 	}
 };
 

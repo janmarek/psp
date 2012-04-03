@@ -1,4 +1,5 @@
-var crypto = require('crypto');
+var crypto = require('crypto'),
+	_ = require('underscore')._;
 
 function GexfExportModel(mongo, model) {
 	this.mongo = mongo;
@@ -34,7 +35,80 @@ GexfExportModel.prototype = {
 
 			callback(nodes);
 		});
+	},
+
+	getEdges: function (callback) {
+		var self = this;
+
+		var edges = {};
+
+		var index = 1;
+
+		this.model.allVotes(function (hlasovani) {
+			hlasovani.forEach(function (votes) {
+				console.log('hlasovani ' + (index++) + '/' + hlasovani.length)
+
+				for (var i = 0; i < votes.length; i++) {
+					for (var j = 0; j < votes.length; j++) {
+						//console.log('i:' + i + ', j:' + j)
+
+						if (i === j) {
+							continue;
+						}
+
+						var key = self._getEdgeKey(votes[i], votes[j]);
+
+						if (!edges[key]) {
+							edges[key] = {
+								from: votes[i].poslanecId,
+								to: votes[j].poslanecId,
+								points: 0
+							}
+						}
+
+						if ((votes[i].akce === 'A' || votes[i].akce === 'N' || votes[i].akce === 'Z')
+							&& (votes[j].akce === 'A' || votes[j].akce === 'N' || votes[j].akce === 'Z')) {
+							if (votes[i].akce === votes[j].akce) {
+								edges[key].points++;
+							} else {
+								edges[key].points--;
+							}
+						}
+					}
+				}
+			});
+
+			callback(self._convertEdgesToXml(edges));
+		});
+	},
+
+	_getEdgeKey: function (vote1, vote2) {
+		return parseInt(vote1.poslanecId) > parseInt(vote2.poslanecId) ? (vote1.poslanecId + '-' + vote2.poslanecId) : (vote2.poslanecId + '-' + vote1.poslanecId);
+	},
+
+	_convertEdgesToXml: function (edges) {
+		console.log('konvertuju');
+
+		var xml = [];
+		_(edges).forEach(function (edge, key) {
+			if (edge.points > 5) {
+				xml.push({
+					name: 'edge',
+					attrs: {
+						id: key,
+						from: edge.from,
+						to: edge.to,
+						weight: 1 + edge.points / 10
+					}
+				});
+			}
+		});
+
+		console.log('hran: ' + xml.length);
+
+		return xml;
 	}
+
 };
 
 module.exports = GexfExportModel;

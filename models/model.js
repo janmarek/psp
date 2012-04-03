@@ -41,6 +41,24 @@ Model.prototype = {
     			callback(snapshots);
 	        });
 	    });
+	},
+
+	poslanecMap: function(callback) {
+		var poslanci = [];
+
+		this.dbAccess.getDb().collection('dataPoslanci', function(err, collection) {
+			collection.find().toArray(function (err, items) {
+
+				items.forEach(function (item) {
+
+					item.poslanci.forEach(function (poslanec) {
+						poslanci[poslanec.id] = poslanec;
+					});
+				});
+
+				callback(poslanci);
+			})
+		})
 	}
 };
 

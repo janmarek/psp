@@ -19,7 +19,7 @@ var GexfExportModel = require('./models/GexfExportModel');
 var DataHandler = require('./DataHandler');
 
 var model = new Model(dbAccess);
-var gexfExportModel = new GexfExportModel(dbAccess.getDb());
+var gexfExportModel = new GexfExportModel(dbAccess.getDb(), model);
 var dataHandler = new DataHandler(dbAccess, model);
 
 // Basic create server and configure

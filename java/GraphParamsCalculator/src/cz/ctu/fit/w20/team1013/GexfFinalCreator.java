@@ -166,8 +166,8 @@ public class GexfFinalCreator {
         
         DynamicModel dynamicModel = Lookup.getDefault().lookup(DynamicController.class).getModel();
 	    DynamicGraph dynamicGraph = dynamicModel.createDynamicGraph(graph);
-	    computeEdgeParameters(dynamicGraph, sortedDates);
-	    computeNodeParameters(dynamicGraph, sortedDates, centerOfTheUniverse);
+	    int maxRounds = computeEdgeParameters(dynamicGraph, sortedDates);
+	    computeNodeParameters(dynamicGraph, sortedDates, centerOfTheUniverse, maxRounds);
         
 
 
@@ -265,7 +265,7 @@ public class GexfFinalCreator {
 
 	}
 	
-	private void computeEdgeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates) {
+	private int computeEdgeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates) {
 		AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
         AttributeColumn overlapColumn = attributeModel.getEdgeTable().addColumn("overlapd", AttributeType.DYNAMIC_DOUBLE);
         int overlapColumnIndex = overlapColumn.getIndex();
@@ -275,6 +275,7 @@ public class GexfFinalCreator {
 		double startDateLong = sortedDates.get(0).getTime();
 		int previousCreated = 0;
 		int theSame = 0;
+		int rounds = 0;
 		for (int i = 0; i < sortedDates.size(); i++) {
         	double endDateLong = Double.POSITIVE_INFINITY;
         	if (i + 1 < sortedDates.size()) {
@@ -315,27 +316,30 @@ public class GexfFinalCreator {
 			     }
 			     edge.getAttributes().setValue(embeddednessnColumnIndex, embeddednessD);
 			 }
+			 rounds++;
 			 System.out.println(j + " created edge");
 			 if (j == previousCreated) {
 				 theSame++;
 				 if (theSame > 5) {
 					 System.out.println("No new data, skipping");
-					 return;
+					 return rounds;
 				 }
 			 } else {
 				 theSame = 0;
 			 }
 			 previousCreated = j;
 		}
+		return rounds;
 	}
 	
-	private void computeNodeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates, Node centerOfTheUniverse) {
+	private void computeNodeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates, Node centerOfTheUniverse, int maxRounds) {
 		AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
         AttributeColumn erdosColumn = attributeModel.getNodeTable().addColumn("erdosd", AttributeType.DYNAMIC_INT);
         int erdosColumnIndex = erdosColumn.getIndex();
         AttributeColumn clusteringColumn = attributeModel.getNodeTable().addColumn("clusteringd", AttributeType.DYNAMIC_DOUBLE);
         int clusteringColumnIndex = clusteringColumn.getIndex();
         
+        int rounds = 0;
 		double startDateLong = sortedDates.get(0).getTime();
 		for (int i = 0; i < sortedDates.size(); i++) {
         	double endDateLong = Double.POSITIVE_INFINITY;
@@ -382,6 +386,11 @@ public class GexfFinalCreator {
 			     }
 			     node.getAttributes().setValue(clusteringColumnIndex, clusteringD);
 
+             }
+             rounds++;
+             if (rounds >= maxRounds) {
+            	 System.out.println("No new data, skipping");
+				 return;
              }
 
 		}

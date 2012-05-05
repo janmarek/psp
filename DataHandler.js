@@ -62,7 +62,9 @@ DataHandler.prototype = {
 									parsing.getSeznamHlasovani(obdobi, id, function(seznamHlasovani) {
 										console.log('list of divisions in meeting ' + id);
 										console.log(seznamHlasovani);
-										seznamHlasovani.forEach(function(hlasovani) {
+										seznamHlasovani
+											.filter(function(h) {return h.title.indexOf('Vl.n.z.') !== -1}) // brat jenom hlasovani o zakonech navrzenych vladou
+											.forEach(function(hlasovani) {
 											// get votes
 											parsing.getHlasovani(hlasovani.url, function(hlasy) {
 												var seznamHlasovaniObj = {number:hlasovani.number, title:hlasovani.title};
@@ -102,7 +104,7 @@ DataHandler.prototype = {
 														// division is node
 														nodes++;
 														dbAccess.getDb().collection('snapshots', function(err, snapshotsCollection) {
-															snapshotsCollection.update({created:createDate}, {$set:{node:nodes, edge:edges}}, {upsert:true, safe:true}, function(err, resultN) {});
+															snapshotsCollection.update({created:hlasy.date}, {$set:{node:nodes, edge:edges}}, {upsert:true, safe:true}, function(err, resultN) {});
 											    	    });
 													});
 												}

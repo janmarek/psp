@@ -26,7 +26,7 @@ Model.prototype = {
 	},
 
 	maxMeetingsInSnapshot: function () {
-		return 5;
+		return 1;
 	},
 
 	snapshots: function (callback) {

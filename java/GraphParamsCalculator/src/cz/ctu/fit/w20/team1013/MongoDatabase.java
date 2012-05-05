@@ -74,8 +74,8 @@ public class MongoDatabase {
 
         while(cur.hasNext()) {
             DBObject snapshot = cur.next();
-            double doubleDate = (Double)snapshot.get("created");
-            Date create = new Date(Math.round(doubleDate));
+            int doubleDate = (Integer)snapshot.get("created");
+            Date create = new Date(doubleDate);
             BasicDBList schuze = (BasicDBList)snapshot.get("schuze");
             List<Integer[]> schuzeList = new ArrayList<Integer[]>();
             for (Object schuzeObj : schuze) {
@@ -125,7 +125,7 @@ public class MongoDatabase {
 		        }
 		        cur.close();
 			}
-			result.put(entry.getKey(), new Object[]{(Double)entry.getValue()[0], hlasovaniRes});
+			result.put(entry.getKey(), new Object[]{(Integer)entry.getValue()[0], hlasovaniRes});
 		}
 		
 		return result;

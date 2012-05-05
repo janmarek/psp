@@ -30,6 +30,7 @@ import org.openide.util.Lookup;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
 import cz.cvut.fit.gephi.snametrics.clusteringcoefficient.ClusteringMetric;
@@ -46,7 +47,7 @@ public class AvarageMetricsCreator {
 		this.mongoDatabase = mongoDatabase;
 	}
 	
-	public void generateMetrics(Map<Integer, String[]> poslanci, Map<Date, List<Object[]>> hlasovani) throws Exception {
+	public void generateMetrics(Map<Integer, String[]> poslanci, Map<Date, Object[]> hlasovani) throws Exception {
 		
         List<Date> sortedDates = new ArrayList<Date>(hlasovani.keySet());
         Collections.sort(sortedDates);
@@ -87,10 +88,6 @@ public class AvarageMetricsCreator {
             	Node node = graphModel.factory().newNode(String.valueOf(poslanec.getKey()));
             	node.getNodeData().setLabel(poslanec.getValue()[0]);
             	MessageDigest md = MessageDigest.getInstance("SHA-1");
-                byte[] sha1hash = new byte[40];
-                md.update(poslanec.getValue()[1].getBytes("UTF-8"), 0, poslanec.getValue()[1].length());
-                sha1hash = md.digest();
-            	node.getNodeData().setColor(Float.intBitsToFloat(sha1hash[0]), Float.intBitsToFloat(sha1hash[1]), Float.intBitsToFloat(sha1hash[2]));
             	node.getAttributes().setValue(stranaColumnIndex, poslanec.getValue()[1]);
             	graph.addNode(node);
             	poslanciNodes.put(poslanec.getKey(), node);
@@ -100,7 +97,8 @@ public class AvarageMetricsCreator {
         	
         	
         	TimeInterval timeInterval = new TimeInterval(startDate.getTime(), Double.POSITIVE_INFINITY);
-        	List<Object[]> hlasovaniList = hlasovani.get(startDate);
+        	@SuppressWarnings("unchecked")
+			List<Object[]> hlasovaniList = (List<Object[]>) hlasovani.get(startDate)[1];
         	for (Object[] hlasovaniObj : hlasovaniList) {
         		int idSchuze = (Integer)hlasovaniObj[0];
         		int obdobi = (Integer)hlasovaniObj[1];
@@ -140,7 +138,7 @@ public class AvarageMetricsCreator {
         		}
         	}
         	Lookup.getDefault().lookup(DynamicController.class).setTimeFormat(DynamicModel.TimeFormat.DATE);  
-        	createAndSaveAvarageMetrics(startDate, graphModel, attributeModel, centerOfTheUniverse);
+        	createAndSaveAvarageMetrics((Double) hlasovani.get(startDate)[0], graphModel, attributeModel, centerOfTheUniverse);
         	pc.closeCurrentWorkspace();
         	pc.closeCurrentProject();
         }
@@ -150,10 +148,13 @@ public class AvarageMetricsCreator {
 
 	}
 	
-	private void createAndSaveAvarageMetrics(Date snapshotDate, GraphModel graphModel, AttributeModel attributeModel, Node centerOfTheUniverse) {
-		
-		DB db = mongoDatabase.getDb();
+	private void createAndSaveAvarageMetrics(Double snapshotDate, GraphModel graphModel, AttributeModel attributeModel, Node centerOfTheUniverse) {
 
+		DB db = mongoDatabase.getDb();
+        DBCollection coll = db.getCollection("snapshots");
+        BasicDBObject query = new BasicDBObject();
+        query.put("created", snapshotDate);
+        
 //      metric
 //      name erdos
 //      value erdosNumber
@@ -162,6 +163,11 @@ public class AvarageMetricsCreator {
         erdosNumberMetric.execute(graphModel, attributeModel);
         double erdosNumber = erdosNumberMetric.getErdosAverage();
         System.out.println("erdosNumber " + erdosNumber);
+        
+        BasicDBObject newValues = new BasicDBObject("name", "erdosNumber");
+        newValues.append("value", erdosNumber);
+        BasicDBObject object = new BasicDBObject("$addToSet", new BasicDBObject("metrics", newValues));
+        coll.update(query, object, true, true);
 
 //      metric
 //      name clustering
@@ -171,6 +177,11 @@ public class AvarageMetricsCreator {
         double clusteringCoefficient = clusteringMetric.getAverageCoefficient();
         System.out.println("clusteringCoefficient " + clusteringCoefficient);
         
+        newValues = new BasicDBObject("name", "clusteringCoefficient");
+        newValues.append("value", clusteringCoefficient);
+        object = new BasicDBObject("$addToSet", new BasicDBObject("metrics", newValues));
+        coll.update(query, object, true, true);
+        
 //      metric
 //      name overlap
 //      value overlap
@@ -178,12 +189,22 @@ public class AvarageMetricsCreator {
         overlapMetric.execute(graphModel, attributeModel);
         double overlap = overlapMetric.getAverageOverlap();
         System.out.println("overlap " + overlap);
+        
+        newValues = new BasicDBObject("name", "overlap");
+        newValues.append("value", overlap);
+        object = new BasicDBObject("$addToSet", new BasicDBObject("metrics", newValues));
+        coll.update(query, object, true, true);
 
 //      metric
 //      name embeddedness
 //      value embeddedness
         double embeddedness = overlapMetric.getAverageEmbeddedness();
         System.out.println("embeddedness " + embeddedness);
+        
+        newValues = new BasicDBObject("name", "embeddedness");
+        newValues.append("value", embeddedness);
+        object = new BasicDBObject("$addToSet", new BasicDBObject("metrics", newValues));
+        coll.update(query, object, true, true);
 
 //      metric
 //      name density
@@ -193,6 +214,10 @@ public class AvarageMetricsCreator {
         double density = graphDensity.getDensity();
         System.out.println("density " + density);
         
+        newValues = new BasicDBObject("name", "density");
+        newValues.append("value", density);
+        object = new BasicDBObject("$addToSet", new BasicDBObject("metrics", newValues));
+        coll.update(query, object, true, true);
 	}
 	
 	private AttributeColumn getTimeIntervalColumn(AttributeTable table) {

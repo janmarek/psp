@@ -45,7 +45,7 @@ public class GexfBaseCreator {
 		super();
 	}
 	
-	public void generateGexf(Map<Integer, String[]> poslanci, Map<Date, List<Object[]>> hlasovani) throws Exception {
+	public void generateGexf(Map<Integer, String[]> poslanci, Map<Date, Object[]> hlasovani) throws Exception {
 		//Init a project - and therefore a workspace
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
@@ -87,10 +87,6 @@ public class GexfBaseCreator {
         for (Entry<Integer, String[]> poslanec : poslanci.entrySet()) {
         	Node node = graphModel.factory().newNode(String.valueOf(poslanec.getKey()));
         	node.getNodeData().setLabel(poslanec.getValue()[0]);
-        	MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] sha1hash = new byte[40];
-            md.update(poslanec.getValue()[1].getBytes("UTF-8"), 0, poslanec.getValue()[1].length());
-            sha1hash = md.digest();
             float color[] = ColorHelper.get(poslanec.getValue()[1]);
             node.getNodeData().setColor(color[0], color[1], color[2]);
         	//node.getNodeData().setColor(Float.intBitsToFloat(sha1hash[0]), Float.intBitsToFloat(sha1hash[1]), Float.intBitsToFloat(sha1hash[2]));
@@ -111,7 +107,8 @@ public class GexfBaseCreator {
         	}
         	System.out.println("startDate " + startDate + " endDate " + endDate);
         	TimeInterval timeInterval = new TimeInterval(startDateLong, Double.POSITIVE_INFINITY);
-        	List<Object[]> hlasovaniList = hlasovani.get(startDate);
+        	@SuppressWarnings("unchecked")
+			List<Object[]> hlasovaniList = (List<Object[]>) hlasovani.get(startDate)[1];
         	for (Object[] hlasovaniObj : hlasovaniList) {
         		int idSchuze = (Integer)hlasovaniObj[0];
         		int obdobi = (Integer)hlasovaniObj[1];

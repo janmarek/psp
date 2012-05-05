@@ -17,7 +17,7 @@ import com.mongodb.Mongo;
 
 public class MongoDatabase {
 	
-	public static final int MAX_COUNT_POSLANCI = 20;
+	public static final int MAX_COUNT_POSLANCI = 200;
 	public static final int MAX_COUNT_HLASOVANI = 1;
 	
 	private Mongo m;
@@ -66,15 +66,16 @@ public class MongoDatabase {
 		return result;
 	}
 	
-	public Map<Date, List<Integer[]>> getSnapshots() {
+	public Map<Date, Object[]> getSnapshots() {
 		
 		DBCollection coll = db.getCollection("snapshots");
-		Map<Date, List<Integer[]>> result = new HashMap<Date, List<Integer[]>> ();
+		Map<Date, Object[]> result = new HashMap<Date, Object[]> ();
         DBCursor cur = coll.find();
 
         while(cur.hasNext()) {
             DBObject snapshot = cur.next();
-            Date create = new Date(Math.round((Double)snapshot.get("created")));
+            double doubleDate = (Double)snapshot.get("created");
+            Date create = new Date(Math.round(doubleDate));
             BasicDBList schuze = (BasicDBList)snapshot.get("schuze");
             List<Integer[]> schuzeList = new ArrayList<Integer[]>();
             for (Object schuzeObj : schuze) {
@@ -85,7 +86,7 @@ public class MongoDatabase {
             	});
             }
             
-            result.put(create, schuzeList);
+            result.put(create, new Object[]{doubleDate, schuzeList});
         }
         
         cur.close();
@@ -93,16 +94,17 @@ public class MongoDatabase {
 		return result;
 	}
 	
-	public Map<Date, List<Object[]>> getHlasovaniBySnapshot() {
+	public Map<Date, Object[]> getHlasovaniBySnapshot() {
 		
 		DBCollection coll = db.getCollection("dataSchuze");
-		Map<Date, List<Object[]>>  result = new HashMap<Date, List<Object[]>> ();
+		Map<Date, Object[]>  result = new HashMap<Date, Object[]> ();
 		
-		Map<Date, List<Integer[]>> snapshots = getSnapshots();
+		Map<Date, Object[]> snapshots = getSnapshots();
 		
-		for (Entry<Date, List<Integer[]>> entry : snapshots.entrySet()) {
+		for (Entry<Date, Object[]> entry : snapshots.entrySet()) {
 			List<Object[]> hlasovaniRes = new ArrayList<Object[]>();
-			List<Integer[]> schuze = entry.getValue();
+			@SuppressWarnings("unchecked")
+			List<Integer[]> schuze = (List<Integer[]>)entry.getValue()[1];
 			for (Integer[] schuzeId : schuze) {
 				BasicDBObject query = new BasicDBObject();
 		        query.put("id", String.valueOf(schuzeId[0]));
@@ -123,7 +125,7 @@ public class MongoDatabase {
 		        }
 		        cur.close();
 			}
-			result.put(entry.getKey(), hlasovaniRes);
+			result.put(entry.getKey(), new Object[]{(Double)entry.getValue()[0], hlasovaniRes});
 		}
 		
 		return result;

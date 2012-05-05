@@ -56,7 +56,7 @@ public class GexfFinalCreator {
 		super();
 	}
 	
-	public void generateGexf(Map<Integer, String[]> poslanci, Map<Date, List<Object[]>> hlasovani) throws Exception {
+	public void generateGexf(Map<Integer, String[]> poslanci, Map<Date, Object[]> hlasovani) throws Exception {
 		//Init a project - and therefore a workspace
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
@@ -94,10 +94,6 @@ public class GexfFinalCreator {
         for (Entry<Integer, String[]> poslanec : poslanci.entrySet()) {
         	Node node = graphModel.factory().newNode(String.valueOf(poslanec.getKey()));
         	node.getNodeData().setLabel(poslanec.getValue()[0]);
-        	MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] sha1hash = new byte[40];
-            md.update(poslanec.getValue()[1].getBytes("UTF-8"), 0, poslanec.getValue()[1].length());
-            sha1hash = md.digest();
             float color[] = ColorHelper.get(poslanec.getValue()[1]);
             node.getNodeData().setColor(color[0], color[1], color[2]);
         	//node.getNodeData().setColor(Float.intBitsToFloat(sha1hash[0]), Float.intBitsToFloat(sha1hash[1]), Float.intBitsToFloat(sha1hash[2]));
@@ -118,7 +114,8 @@ public class GexfFinalCreator {
         	}
         	
         	TimeInterval timeInterval = new TimeInterval(startDate.getTime(), endDate != null ? endDate.getTime() : Double.POSITIVE_INFINITY);
-        	List<Object[]> hlasovaniList = hlasovani.get(startDate);
+        	@SuppressWarnings("unchecked")
+			List<Object[]> hlasovaniList = (List<Object[]>) hlasovani.get(startDate)[1];
         	for (Object[] hlasovaniObj : hlasovaniList) {
         		int idSchuze = (Integer)hlasovaniObj[0];
         		int obdobi = (Integer)hlasovaniObj[1];
@@ -270,9 +267,9 @@ public class GexfFinalCreator {
 	
 	private void computeEdgeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates) {
 		AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
-        AttributeColumn overlapColumn = attributeModel.getEdgeTable().addColumn("overlap", AttributeType.DYNAMIC_DOUBLE);
+        AttributeColumn overlapColumn = attributeModel.getEdgeTable().addColumn("overlapd", AttributeType.DYNAMIC_DOUBLE);
         int overlapColumnIndex = overlapColumn.getIndex();
-        AttributeColumn embeddednessnColumn = attributeModel.getEdgeTable().addColumn("embeddednessn", AttributeType.DYNAMIC_INT);
+        AttributeColumn embeddednessnColumn = attributeModel.getEdgeTable().addColumn("embeddednessd", AttributeType.DYNAMIC_INT);
         int embeddednessnColumnIndex = embeddednessnColumn.getIndex();
         
 		double startDateLong = sortedDates.get(0).getTime();
@@ -322,9 +319,9 @@ public class GexfFinalCreator {
 	
 	private void computeNodeParameters(DynamicGraph dynamicGraph, List<Date> sortedDates, Node centerOfTheUniverse) {
 		AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
-        AttributeColumn erdosColumn = attributeModel.getNodeTable().addColumn("erdos", AttributeType.DYNAMIC_INT);
+        AttributeColumn erdosColumn = attributeModel.getNodeTable().addColumn("erdosd", AttributeType.DYNAMIC_INT);
         int erdosColumnIndex = erdosColumn.getIndex();
-        AttributeColumn clusteringColumn = attributeModel.getNodeTable().addColumn("clusteringn", AttributeType.DYNAMIC_DOUBLE);
+        AttributeColumn clusteringColumn = attributeModel.getNodeTable().addColumn("clusteringd", AttributeType.DYNAMIC_DOUBLE);
         int clusteringColumnIndex = clusteringColumn.getIndex();
         
 		double startDateLong = sortedDates.get(0).getTime();

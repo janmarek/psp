@@ -17,6 +17,7 @@ ExportController.prototype = {
 	{
 		app.get('/v1/gexf', controllerHelpers.action(this, 'default'));
 		app.get('/v2/gexf', controllerHelpers.action(this, 'gexfv2'));
+		app.get('/v2/gexffinal', controllerHelpers.action(this, 'gexfv2final'));
 	},
 
 	/**
@@ -70,32 +71,24 @@ ExportController.prototype = {
 		var cacheFile = __dirname + '/../tmp/cachev2.gexf';
 		fs.readFile(cacheFile, function (err, content) {
 			if (err) {
-				self.model.getEdges(function (edges) {
-					self.model.getNodes(function (nodes) {
-						var data = [
-							{name: 'graph', attrs: {mode: "static", defaultedgetype: "undirected"}, children: [
-								{name: 'nodes', children: nodes},
-								{name: 'edges', children: edges},
-							]}
-						];
+				res.end('<err>unable to read cache file</err>');
+ 				return;
+			} else {
+				res.end(content);
+			}
+		})
+	},
+	
+	gexfv2finalAction: function(req, res)
+	{
+		res.header('Content-Type', 'application/xml');
+		var self = this;
 
-						var doc = xmlFactory.create('gexf', data, {
-							xmlns: "http://www.gexf.net/1.2draft",
-							'xmlns:viz': "http://www.gexf.net/1.2draft/viz",
-							version: "1.2"
-						});
-
-				 		
-				 		var xmlstr = doc.toString({ pretty: true });
-				 		fs.writeFile(cacheFile, xmlstr, function (err) {
-				 			if (err) {
-				 				res.end('<err>unable to write cache file</err>');
-				 				return;
-				 			}
-				 			res.end(xmlstr);
-				 		})
-					});
-				});
+		var cacheFile = __dirname + '/../tmp/cachev2final.gexf';
+		fs.readFile(cacheFile, function (err, content) {
+			if (err) {
+				res.end('<err>unable to read cache file</err>');
+ 				return;
 			} else {
 				res.end(content);
 			}

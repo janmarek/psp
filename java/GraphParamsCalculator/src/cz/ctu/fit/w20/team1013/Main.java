@@ -17,7 +17,7 @@ public class Main {
 		try {
 			mongoDatabase.connect();
 			Map<Integer, String[]> poslanci = mongoDatabase.getPoslanci();
-	        Map<Date, List<Object[]>> hlasovani = mongoDatabase.getHlasovaniBySnapshot();
+	        Map<Date, Object[]> hlasovani = mongoDatabase.getHlasovaniBySnapshot();
 			
 			GexfBaseCreator gexfBaseCreator = new GexfBaseCreator();
 			AvarageMetricsCreator avarageMetricsCreator = new AvarageMetricsCreator(mongoDatabase);
@@ -25,8 +25,6 @@ public class Main {
 			gexfBaseCreator.generateGexf(poslanci, hlasovani);
 			gexfFinalCreator.generateGexf(poslanci, hlasovani);
 			avarageMetricsCreator.generateMetrics(poslanci, hlasovani);
-			
-			
 		} finally {
 			if (mongoDatabase != null) {
 				mongoDatabase.disconnect();

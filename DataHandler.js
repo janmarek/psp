@@ -55,16 +55,21 @@ DataHandler.prototype = {
 								var doc = {id:newOne.title, obdobi:schuzeNew.obdobi, hlasovani:[]};
 								console.log('New government meeting ' + doc.id);
 								dataCollection.insert(doc, {safe:true}, function(err, result) {
-									console.log(result);
+									//console.log(result);
 									var obdobi = result[0].obdobi;
 									var id = result[0].id;
 									// parse list of divisions in meeting
 									parsing.getSeznamHlasovani(obdobi, id, function(seznamHlasovani) {
 										console.log('list of divisions in meeting ' + id);
-										console.log(seznamHlasovani);
-										seznamHlasovani
-											.filter(function(h) {return h.title.indexOf('Vl.n.z.') !== -1}) // brat jenom hlasovani o zakonech navrzenych vladou
+										seznamHlasovani = seznamHlasovani.filter(function(h) {return h.title.indexOf('Procedurální hlasování') === -1});
+										var seznamHlasovaniFiltered = seznamHlasovani.filter(function(h) {return h.title.indexOf('Vl.n.z.') !== -1}); // brat jenom hlasovani o zakonech navrzenych vladou nebo prvnich 10
+										if (seznamHlasovaniFiltered.length === 0) {
+											seznamHlasovaniFiltered = seznamHlasovani.slice(0, 10);
+										}
+										console.log(seznamHlasovaniFiltered);
+										seznamHlasovaniFiltered
 											.forEach(function(hlasovani) {
+												console.log('hlasovani '+hlasovani.title);
 											// get votes
 											parsing.getHlasovani(hlasovani.url, function(hlasy) {
 												var seznamHlasovaniObj = {number:hlasovani.number, title:hlasovani.title};
@@ -100,7 +105,7 @@ DataHandler.prototype = {
 															ano:hlasy.ano, ne:hlasy.ne, hlasy:hlasyArray};
 													dataCollection.update({id:id, obdobi:obdobi}, {$push:{hlasovani:doc1}}, {upsert:true, safe:true}, function(err, resultN) {
 														console.log('New division');
-														console.log(doc1);
+														//console.log(doc1);
 														// division is node
 														nodes++;
 														dbAccess.getDb().collection('snapshots', function(err, snapshotsCollection) {

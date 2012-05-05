@@ -82,16 +82,18 @@ public class MongoDatabase {
             	create = new Date(Math.round((Double) dateObj));
             }
             BasicDBList schuze = (BasicDBList)snapshot.get("schuze");
-            List<Integer[]> schuzeList = new ArrayList<Integer[]>();
-            for (Object schuzeObj : schuze) {
-            	BasicDBObject schuzeDb = (BasicDBObject) schuzeObj;
-            	schuzeList.add(new Integer[]{
-            			Integer.parseInt(schuzeDb.getString("id")),
-            			Integer.parseInt(schuzeDb.getString("obdobi"))
-            	});
+            if (schuze!= null) {
+	            List<Integer[]> schuzeList = new ArrayList<Integer[]>();
+	            for (Object schuzeObj : schuze) {
+	            	BasicDBObject schuzeDb = (BasicDBObject) schuzeObj;
+	            	schuzeList.add(new Integer[]{
+	            			Integer.parseInt(schuzeDb.getString("id")),
+	            			Integer.parseInt(schuzeDb.getString("obdobi"))
+	            	});
+	            }
+	            
+	            result.put(create, new Object[]{dateObj, schuzeList});
             }
-            
-            result.put(create, new Object[]{dateObj, schuzeList});
         }
         
         cur.close();

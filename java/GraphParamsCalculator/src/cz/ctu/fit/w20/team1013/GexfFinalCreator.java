@@ -273,6 +273,8 @@ public class GexfFinalCreator {
         int embeddednessnColumnIndex = embeddednessnColumn.getIndex();
         
 		double startDateLong = sortedDates.get(0).getTime();
+		int previousCreated = 0;
+		int theSame = 0;
 		for (int i = 0; i < sortedDates.size(); i++) {
         	double endDateLong = Double.POSITIVE_INFINITY;
         	if (i + 1 < sortedDates.size()) {
@@ -313,7 +315,17 @@ public class GexfFinalCreator {
 			     }
 			     edge.getAttributes().setValue(embeddednessnColumnIndex, embeddednessD);
 			 }
-			 System.out.println(j + " created ");
+			 System.out.println(j + " created edge");
+			 if (j == previousCreated) {
+				 theSame++;
+				 if (theSame > 5) {
+					 System.out.println("No new data, skipping");
+					 return;
+				 }
+			 } else {
+				 theSame = 0;
+			 }
+			 previousCreated = j;
 		}
 	}
 	
@@ -371,7 +383,7 @@ public class GexfFinalCreator {
 			     node.getAttributes().setValue(clusteringColumnIndex, clusteringD);
 
              }
-			 
+
 		}
 	}
 

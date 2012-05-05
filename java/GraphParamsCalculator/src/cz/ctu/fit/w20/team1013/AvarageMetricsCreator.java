@@ -140,7 +140,7 @@ public class AvarageMetricsCreator {
         		}
         	}
         	Lookup.getDefault().lookup(DynamicController.class).setTimeFormat(DynamicModel.TimeFormat.DATE);  
-        	createAndSaveAvarageMetrics((Integer) hlasovani.get(startDate)[0], graphModel, attributeModel, centerOfTheUniverse);
+        	createAndSaveAvarageMetrics(hlasovani.get(startDate)[0], graphModel, attributeModel, centerOfTheUniverse);
         	pc.closeCurrentWorkspace();
         	pc.closeCurrentProject();
         }
@@ -150,7 +150,7 @@ public class AvarageMetricsCreator {
 
 	}
 	
-	private void createAndSaveAvarageMetrics(Integer snapshotDate, GraphModel graphModel, AttributeModel attributeModel, Node centerOfTheUniverse) {
+	private void createAndSaveAvarageMetrics(Object snapshotDate, GraphModel graphModel, AttributeModel attributeModel, Node centerOfTheUniverse) {
 
 		DB db = mongoDatabase.getDb();
         DBCollection coll = db.getCollection("snapshots");
@@ -163,8 +163,8 @@ public class AvarageMetricsCreator {
         try {
 			while(cur.hasNext()) {
 			    DBObject snapshot = cur.next();
-			    int doubleDate = (Integer)snapshot.get("created");
-			    if (doubleDate == snapshotDate && snapshot.get("metrics") != null) {
+			    Object dateObj = snapshot.get("created");
+			    if (dateObj.equals(snapshotDate) && snapshot.get("metrics") != null) {
 			    	System.out.println("Metrics added yet, skipping");
 			    	return;
 			    }

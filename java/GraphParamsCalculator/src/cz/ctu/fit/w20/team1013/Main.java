@@ -1,10 +1,7 @@
 package cz.ctu.fit.w20.team1013;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-
-import com.mongodb.DB;
 
 public class Main {
 

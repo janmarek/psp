@@ -31,7 +31,9 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 
 import cz.cvut.fit.gephi.snametrics.clusteringcoefficient.ClusteringMetric;
 import cz.cvut.fit.gephi.snametrics.erdosnumber.ErdosNumberMetric;
@@ -152,9 +154,25 @@ public class AvarageMetricsCreator {
 
 		DB db = mongoDatabase.getDb();
         DBCollection coll = db.getCollection("snapshots");
+        
         BasicDBObject query = new BasicDBObject();
         query.put("created", snapshotDate);
         
+        DBCursor cur = coll.find(query);
+
+        try {
+			while(cur.hasNext()) {
+			    DBObject snapshot = cur.next();
+			    double doubleDate = (Double)snapshot.get("created");
+			    if (doubleDate == snapshotDate && snapshot.get("metrics") != null) {
+			    	System.out.println("Metrics added yet, skipping");
+			    	return;
+			    }
+			}
+		} finally {
+			cur.close();
+		}
+     
 //      metric
 //      name erdos
 //      value erdosNumber

@@ -17,6 +17,7 @@ MetaController.prototype = {
 	{
 		app.get('/v1/metadata', controllerHelpers.action(this, 'default'));
 		app.get('/v1/snapshots', controllerHelpers.action(this, 'snapshots'));
+		app.get('/v1/results', controllerHelpers.action(this, 'results'));
 	},
 
 	/**
@@ -99,7 +100,35 @@ MetaController.prototype = {
 				res.end(doc.toString({ pretty: true }));
             });
 		}
+	},
+	
+	resultsAction: function(req, res)
+	{
+
+		model.snapshots(function(data) {
+			var doc = xmlFactory.create('results', data.map(function(item) {
+				return {
+					name: 'result', 
+					attrs: {
+						snapshotCreated: item.created.toISOString()
+					},
+					children: item.metrics.map(function(item1) {
+						return {
+							name: 'metric', 
+							attrs: {
+								name: item1.name,
+								value: item1.value
+							}
+						};
+					})
+				};
+			}));
+
+			res.header('Content-Type', 'application/xml');
+			res.end(doc.toString({ pretty: true }));
+        });
 	}
+	
 };
 
 module.exports = MetaController;

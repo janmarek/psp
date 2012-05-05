@@ -62,10 +62,10 @@ DataHandler.prototype = {
 									parsing.getSeznamHlasovani(obdobi, id, function(seznamHlasovani) {
 										console.log('list of divisions in meeting ' + id);
 										console.log(seznamHlasovani);
-										var seznamHlasovaniObj = {number:seznamHlasovani[j].number, title:seznamHlasovani[j].title};
-										for(var j in seznamHlasovani) {
+										seznamHlasovani.forEach(function(hlasovani) {
 											// get votes
-											parsing.getHlasovani(seznamHlasovani[j].url, function(hlasy) {
+											parsing.getHlasovani(hlasovani.url, function(hlasy) {
+												var seznamHlasovaniObj = {number:hlasovani.number, title:hlasovani.title};
 												// save division
 												console.log('Division error ' + hlasy.error + ' url ' + hlasy.url);
 //												console.log(hlasy);
@@ -107,7 +107,7 @@ DataHandler.prototype = {
 													});
 												}
 								            });
-										}
+										});
 									});
 									// government meeting is node
 									nodes++;

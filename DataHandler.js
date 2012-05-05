@@ -16,7 +16,7 @@ DataHandler.prototype = {
 	createSnapshot: function(createDate) {
 		console.log('Checking changes and making new snapshot');
 		parsing.getSeznamSchuzi(null, function(schuzeNew) {
-		
+
 			dbAccess.getDb().collection('snapshots', function(err, snapshotsCollection) {
 				snapshotsCollection.find().toArray(function(err, items) {
 					// get previously created data info
@@ -28,11 +28,11 @@ DataHandler.prototype = {
 		        			if (items[i].schuze != null) {
 		        				for(var j in items[i].schuze) {
 		        					schuzeStored.push({obdobi: items[i].schuze[j].obdobi, id: items[i].schuze[j].id});
-		        				}        				
+		        				}
 		        			}
 		        		}
 		        	}
-		        	
+
 		        	var createdMettingsCount = 0;
 		        	// fetch and store only new data
 		        	for(var i in schuzeNew.schuze) {
@@ -62,9 +62,10 @@ DataHandler.prototype = {
 									parsing.getSeznamHlasovani(obdobi, id, function(seznamHlasovani) {
 										console.log('list of divisions in meeting ' + id);
 										console.log(seznamHlasovani);
+										var seznamHlasovaniObj = {number:seznamHlasovani[j].number, title:seznamHlasovani[j].title};
 										for(var j in seznamHlasovani) {
 											// get votes
-											parsing.getHlasovani(seznamHlasovani[j].url, {number:seznamHlasovani[j].number, title:seznamHlasovani[j].title}, function(hlasy, seznamHlasovaniObj) {
+											parsing.getHlasovani(seznamHlasovani[j].url, function(hlasy) {
 												// save division
 												console.log('Division error ' + hlasy.error + ' url ' + hlasy.url);
 //												console.log(hlasy);
@@ -77,7 +78,7 @@ DataHandler.prototype = {
 //															console.log('New vote ' + vote.akce + ' ' + vote.poslanecId + ' ' + seznamHlasovaniObj.number);
 															// vote is edge
 															edges++;
-															
+
 															// insert new deputy
 															var doc2 = {id:hlasy.hlasy[k].poslanec.id, jmeno:hlasy.hlasy[k].poslanec.jmeno,
 																	strana:hlasy.hlasy[k].poslanec.strana};
@@ -125,10 +126,10 @@ DataHandler.prototype = {
 		        			break;
 		        		}
 		        	}
-		        	
+
 		        });
 		    });
-			
+
         });
 	}
 };

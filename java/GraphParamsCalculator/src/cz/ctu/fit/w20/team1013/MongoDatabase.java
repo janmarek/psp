@@ -24,7 +24,7 @@ public class MongoDatabase {
 	private DB db;
 
 	public void connect() throws Exception {
-		m = new Mongo("localhost" , 27017);
+		m = new Mongo("127.0.0.1" , 27017);
 		db = m.getDB("psp");
 	}
 	

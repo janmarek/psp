@@ -98,7 +98,9 @@ public class GexfFinalCreator {
             byte[] sha1hash = new byte[40];
             md.update(poslanec.getValue()[1].getBytes("UTF-8"), 0, poslanec.getValue()[1].length());
             sha1hash = md.digest();
-        	node.getNodeData().setColor(Float.intBitsToFloat(sha1hash[0]), Float.intBitsToFloat(sha1hash[1]), Float.intBitsToFloat(sha1hash[2]));
+            float color[] = ColorHelper.get(poslanec.getValue()[1]);
+            node.getNodeData().setColor(color[0], color[1], color[2]);
+        	//node.getNodeData().setColor(Float.intBitsToFloat(sha1hash[0]), Float.intBitsToFloat(sha1hash[1]), Float.intBitsToFloat(sha1hash[2]));
         	node.getAttributes().setValue(stranaColumnIndex, poslanec.getValue()[1]);
 //        	node.getAttributes().setValue(timeIntervalColumnNodeIndex, timeIntervalNode);
         	graph.addNode(node);

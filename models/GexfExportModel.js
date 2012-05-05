@@ -1,5 +1,14 @@
-var crypto = require('crypto'),
-	_ = require('underscore')._;
+var _ = require('underscore')._;
+
+var colorTable = {
+	"ČSSD":"E87116",
+	"KSČM":"D8221C",
+	"ODS":"1C51FF",
+	"TOP09-S":"8532C1",
+	"VV":"F0D821",
+	"_":"888888"
+};
+
 
 function GexfExportModel(mongo, model) {
 	this.mongo = mongo;
@@ -12,7 +21,8 @@ GexfExportModel.prototype = {
 			var nodes = [];
 
 			poslanci.forEach(function (poslanec) {
-				var color = crypto.createHash('sha1').update(poslanec.strana).digest('hex');
+				var color = colorTable[poslanec.strana];
+				color = (color !== undefined) ? color : colorTable._;
 
 				nodes.push({
 					name: 'node',
@@ -30,7 +40,7 @@ GexfExportModel.prototype = {
 							}
 						}
 					]
-				})	
+				})
 			});
 
 			callback(nodes);

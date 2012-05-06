@@ -109,7 +109,7 @@ DataHandler.prototype = {
 														// division is node
 														nodes++;
 														dbAccess.getDb().collection('snapshots', function(err, snapshotsCollection) {
-															snapshotsCollection.update({created:hlasy.date}, {$set:{node:nodes, edge:edges}}, {upsert:true, safe:true}, function(err, resultN) {});
+															snapshotsCollection.update({created:hlasy.date.getTime()}, {$set:{node:nodes, edge:edges}}, {upsert:true, safe:true}, function(err, resultN) {});
 											    	    });
 													});
 												}

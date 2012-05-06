@@ -114,13 +114,23 @@ MetaController.prototype = {
 							snapshotCreated: item.created.toISOString()
 						},
 						children: item.metrics.map(function(item1) {
-							return {
-								name: 'metric', 
-								attrs: {
-									name: item1.name,
-									value: item1.value
-								}
-							};
+							if (isNaN(item1.value)) {
+								return {
+									name: 'metric', 
+									attrs: {
+										name: item1.name,
+										value: 1.0
+									}
+								};
+							} else {
+								return {
+									name: 'metric', 
+									attrs: {
+										name: item1.name,
+										value: item1.value
+									}
+								};
+							}
 						})
 						
 					};

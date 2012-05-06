@@ -57,6 +57,27 @@ public class AvarageMetricsCreator {
         	Date startDate = sortedDates.get(i);
         	long startDateLong = startDate.getTime();
         	
+        	DB db = mongoDatabase.getDb();
+            DBCollection coll = db.getCollection("snapshots");
+            
+            BasicDBObject query = new BasicDBObject();
+            query.put("created", hlasovani.get(startDate)[0]);
+            
+            DBCursor cur = coll.find(query);
+
+            try {
+    			while(cur.hasNext()) {
+    			    DBObject snapshot = cur.next();
+    			    Object dateObj = snapshot.get("created");
+    			    if (dateObj.equals(hlasovani.get(startDate)[0]) && snapshot.get("metrics") != null) {
+    			    	System.out.println("Metrics added yet, skipping");
+    			    	return;
+    			    }
+    			}
+    		} finally {
+    			cur.close();
+    		}
+        	
         	//Init a project - and therefore a workspace
             ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
             pc.newProject();
@@ -158,21 +179,6 @@ public class AvarageMetricsCreator {
         
         BasicDBObject query = new BasicDBObject();
         query.put("created", snapshotDate);
-        
-        DBCursor cur = coll.find(query);
-
-        try {
-			while(cur.hasNext()) {
-			    DBObject snapshot = cur.next();
-			    Object dateObj = snapshot.get("created");
-			    if (dateObj.equals(snapshotDate) && snapshot.get("metrics") != null) {
-			    	System.out.println("Metrics added yet, skipping");
-			    	return;
-			    }
-			}
-		} finally {
-			cur.close();
-		}
      
 //      metric
 //      name erdos

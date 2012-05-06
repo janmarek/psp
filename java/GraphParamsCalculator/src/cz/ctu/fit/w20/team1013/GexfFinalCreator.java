@@ -295,9 +295,13 @@ public class GexfFinalCreator {
 			 AttributeColumn embeddednessColumn = attributeModel.getEdgeTable().getColumn("embeddedness");
 			 int embeddednessColumnIndex = embeddednessColumn.getIndex();
 			 int j = 0;
+			 Edge edg = null;
 			 while (iterator.hasNext()) {
 				 j++;
 			     Edge edge = iterator.next();
+			     if (edg == null) {
+			    	 edg = edge;
+			     }
 			     Double overlapCoefficient = (Double) edge.getAttributes().getValue(neighborhoodOverlapColumnIndex);   
 			     Integer embeddedness = (Integer) edge.getAttributes().getValue(embeddednessColumnIndex);
 			     
@@ -315,6 +319,9 @@ public class GexfFinalCreator {
 			    	 embeddednessD = new DynamicInteger(embeddednessD, new Interval<Integer>(startDateLong, endDateLong, embeddedness));
 			     }
 			     edge.getAttributes().setValue(embeddednessnColumnIndex, embeddednessD);
+			     if (edg.getEdgeData().getId().equals(edge.getEdgeData().getId())) {
+			    	 System.out.println(overlapCoefficient + " created overlapCoefficientD " + embeddedness + " created embeddednessD");
+			     }
 			 }
 			 rounds++;
 			 System.out.println(j + " created edge");

@@ -59,7 +59,7 @@ GexfExportModel.prototype = {
 		this.model.allMeetings(function (meetings) {
 
 			meetings.forEach(function (meeting, iMeeting) {
-				end = meeting.id;
+				end = parseInt(meeting.id, 10);
 
 				meeting.hlasovani.forEach(function (hlasovani) {
 					console.log('hlasovani ' + (index++))
@@ -84,7 +84,8 @@ GexfExportModel.prototype = {
 									from: votes[i].poslanecId,
 									to: votes[j].poslanecId,
 									points: 0,
-									snapshots: []
+									snapshots: [],
+                                    spells: []
 								}
 							}
 
@@ -101,22 +102,43 @@ GexfExportModel.prototype = {
 
 				});
 
-				if (end % 9 === 0) {
-
+				if (end % 5 === 0 && start < end) {
 				console.log('snapshot', start, end);
 
-				_(edges).forEach(function (edge, key) {
-					if (edge.points > 10) {
+//                 var sum = 0, avg = 0;
+//
+//                 _(edges).forEach(function (edge, key) {
+//                     sum += edge.points;
+//                     avg++;
+//                 });
+//                 avg = sum/avg*2;
+//
+                var keys = _(edges).keys().sort(function(a, b) {
+                    return edges[b].points - edges[a].points;
+                });
+
+				//_(edges).forEach(function (edge, key) {
+                keys.forEach(function(key, i) {
+                    var edge = edges[key];
+					//if (edge.points > avg) {
+                    if (i < keys.length/10) {
 						edge.snapshots.push({
 							name: 'attvalue',
 							attrs: {
 								for: '0',
-								value: 1 + edge.points/10,
+								value: 1 + edge.points,
 								start: start,
 								end: end
 							}
 						});
-					}
+                        edge.spells.push({
+                            name: 'spell',
+                            attrs: {
+                                start: start,
+                                end: end
+                            }
+                        });
+                    }
 					edge.points = 0;
 				});
 
@@ -140,6 +162,9 @@ GexfExportModel.prototype = {
 
 		var xml = [];
 		_(edges).forEach(function (edge, key) {
+            if (edge.snapshots.length === 0) {
+                return;
+            }
 			xml.push({
 				name: 'edge',
 				attrs: {
@@ -150,7 +175,9 @@ GexfExportModel.prototype = {
 				},
 				children: [
 					{name: 'attvalues',
-					 children: edge.snapshots}
+					 children: edge.snapshots},
+                    {name: 'spells',
+                     children: edge.spells}
 				]
 			});
 		});

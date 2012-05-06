@@ -16,10 +16,12 @@ var NotFound = require('./app/NotFound');
 var Unauthorized = require('./app/Unauthorized');
 var Model = require('./models/model');
 var GexfExportModel = require('./models/GexfExportModel');
+var GexfExportDynamicModel = require('./models/GexfExportDynamicModel');
 var DataHandler = require('./DataHandler');
 
 var model = new Model(dbAccess);
 var gexfExportModel = new GexfExportModel(dbAccess.getDb(), model);
+var gexfExportDynamicModel = new GexfExportDynamicModel(dbAccess.getDb(), model);
 var dataHandler = new DataHandler(dbAccess, model);
 
 // Basic create server and configure
@@ -54,7 +56,7 @@ app.set("view options", {layout: false});
 
 var controllers = [
 	new MetaController(model),
-	new ExportController(gexfExportModel)
+	new ExportController(gexfExportModel, gexfExportDynamicModel)
 ];
 
 controllers.forEach(function (controller) {

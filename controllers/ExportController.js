@@ -6,8 +6,9 @@ var controllerHelpers = require('../app/controllerHelpers'),
 	_ = require('underscore')._;
 
 // constructor
-function ExportController(gexfModel) {
+function ExportController(gexfModel, gexfDynamicModel) {
 	this.model = gexfModel;
+    this.modelDynamic = gexfDynamicModel;
 }
 
 ExportController.prototype = {
@@ -18,6 +19,7 @@ ExportController.prototype = {
 	{
 		app.get('/v1/gexf', controllerHelpers.action(this, 'default'));
 		app.get('/v2/gexf', controllerHelpers.action(this, 'gexfv2'));
+        app.get('/v3/gexf', controllerHelpers.action(this, 'dynamic'));
 		app.get('/v2/gexffinal', controllerHelpers.action(this, 'gexfv2final'));
 		app.get('/v1/gexffinal', controllerHelpers.action(this, 'gexfv2final')); // na wiki píšou, že to má bejt na jedničce
 		app.get('/v1/results', controllerHelpers.action(this, 'metrics'));
@@ -71,13 +73,13 @@ ExportController.prototype = {
         res.header('Content-Type', 'application/xml');
         var self = this;
 
-        var cacheFile = __dirname + '/../tmp/cache.gexf';
+        var cacheFile = __dirname + '/../tmp/cache-dynamic.gexf';
         fs.readFile(cacheFile, function (err, content) {
             if (err) {
-                self.model.getEdges(function (edges) {
-                    self.model.getNodes(function (nodes) {
+                self.modelDynamic.getEdges(function (edges) {
+                    self.modelDynamic.getNodes(function (nodes) {
                         var data = [
-                            {name: 'graph', attrs: {mode: "dynamic", defaultedgetype: "undirected"}, children: [
+                            {name: 'graph', attrs: {mode: "dynamic", defaultedgetype: "undirected", timeformat: "double"}, children: [
                                 {name: 'attributes',
                                         attrs: {'class': 'edge', mode: 'dynamic'},
                                         children: [{name: 'attribute', attrs: {

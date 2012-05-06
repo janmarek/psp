@@ -85,7 +85,7 @@ Model.prototype = {
 
 	allMeetings: function(callback) {
 		this.dbAccess.getDb().collection('dataSchuze', function (err, collection) {
-			collection.find().toArray(function (err, meetings) {
+			collection.find().sort({id: 1}).toArray(function (err, meetings) {
 				callback(meetings);
 			});
 		});

@@ -64,19 +64,23 @@ public class AvarageMetricsCreator {
             query.put("created", hlasovani.get(startDate)[0]);
             
             DBCursor cur = coll.find(query);
-
+            
+            boolean added = false;
             try {
     			while(cur.hasNext()) {
     			    DBObject snapshot = cur.next();
     			    Object dateObj = snapshot.get("created");
     			    if (dateObj.equals(hlasovani.get(startDate)[0]) && snapshot.get("metrics") != null) {
     			    	System.out.println("Metrics added yet, skipping");
-    			    	return;
+    			    	added = true;
     			    }
     			}
     		} finally {
     			cur.close();
     		}
+            if (added) {
+            	continue;
+            }
         	
         	//Init a project - and therefore a workspace
             ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);

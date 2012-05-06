@@ -107,21 +107,31 @@ MetaController.prototype = {
 
 		model.snapshots(function(data) {
 			var doc = xmlFactory.create('results', data.map(function(item) {
-				return {
-					name: 'result', 
-					attrs: {
-						snapshotCreated: item.created.toISOString()
-					},
-					children: item.metrics.map(function(item1) {
-						return {
-							name: 'metric', 
-							attrs: {
-								name: item1.name,
-								value: item1.value
-							}
-						};
-					})
-				};
+				if (item.metrics != null) {
+					return {
+						name: 'result', 
+						attrs: {
+							snapshotCreated: item.created.toISOString()
+						},
+						children: item.metrics.map(function(item1) {
+							return {
+								name: 'metric', 
+								attrs: {
+									name: item1.name,
+									value: item1.value
+								}
+							};
+						})
+						
+					};
+				} else {
+					return {
+						name: 'result', 
+						attrs: {
+							snapshotCreated: item.created.toISOString()
+						}
+					};
+				}
 			}));
 
 			res.header('Content-Type', 'application/xml');

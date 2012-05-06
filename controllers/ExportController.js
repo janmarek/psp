@@ -46,7 +46,7 @@ ExportController.prototype = {
 							version: "1.2"
 						});
 
-				 		
+
 				 		var xmlstr = doc.toString({ pretty: true });
 				 		fs.writeFile(cacheFile, xmlstr, function (err) {
 				 			if (err) {
@@ -61,8 +61,53 @@ ExportController.prototype = {
 				res.end(content);
 			}
 		})
-	}, 
-	
+	},
+
+    dynamicAction: function(req, res)
+    {
+        res.header('Content-Type', 'application/xml');
+        var self = this;
+
+        var cacheFile = __dirname + '/../tmp/cache.gexf';
+        fs.readFile(cacheFile, function (err, content) {
+            if (err) {
+                self.model.getEdges(function (edges) {
+                    self.model.getNodes(function (nodes) {
+                        var data = [
+                            {name: 'graph', attrs: {mode: "dynamic", defaultedgetype: "undirected"}, children: [
+                                {name: 'attributes',
+                                        attrs: {class: 'edge', mode: 'dynamic'},
+                                        children: [{name: 'attribute', attrs: {
+                                            id: '0', title: 'weight', type: 'float'
+                                        }}]},
+                                {name: 'nodes', children: nodes},
+                                {name: 'edges', children: edges},
+                            ]}
+                        ];
+
+                        var doc = xmlFactory.create('gexf', data, {
+                            xmlns: "http://www.gexf.net/1.2draft",
+                            'xmlns:viz': "http://www.gexf.net/1.2draft/viz",
+                            version: "1.2"
+                        });
+
+
+                        var xmlstr = doc.toString({ pretty: true });
+                        fs.writeFile(cacheFile, xmlstr, function (err) {
+                            if (err) {
+                                res.end('<err>unable to write cache file</err>');
+                                return;
+                            }
+                            res.end(xmlstr);
+                        })
+                    });
+                });
+            } else {
+                res.end(content);
+            }
+        })
+    },
+
 	gexfv2Action: function(req, res)
 	{
 		res.header('Content-Type', 'application/xml');
@@ -78,7 +123,7 @@ ExportController.prototype = {
 			}
 		})
 	},
-	
+
 	gexfv2finalAction: function(req, res)
 	{
 		res.header('Content-Type', 'application/xml');

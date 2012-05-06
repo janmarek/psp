@@ -142,6 +142,8 @@ MetaController.prototype = {
 						}
 					};
 				}
+			}).filter(function (result) {
+				return result.children && result.children.length > 0;
 			}));
 
 			res.header('Content-Type', 'application/xml');

@@ -22,7 +22,7 @@ ExportController.prototype = {
         app.get('/v3/gexf', controllerHelpers.action(this, 'dynamic'));
 		app.get('/v2/gexffinal', controllerHelpers.action(this, 'gexfv2final'));
 		app.get('/v1/gexffinal', controllerHelpers.action(this, 'gexfv2final')); // na wiki píšou, že to má bejt na jedničce
-		app.get('/v1/results', controllerHelpers.action(this, 'metrics'));
+		//app.get('/v1/results', controllerHelpers.action(this, 'metrics')); sry, ale uz jsem to udelal pred tebou, melo to byt do pulnoci! je to v MetaController
 	},
 
 	/**
@@ -143,55 +143,55 @@ ExportController.prototype = {
 				res.end(content);
 			}
 		})
-	},
-
-	metricsAction: function (req, res)
-	{
-		res.header('Content-Type', 'application/xml');
-
-		var self = this;
-		this.model.snapshots(function (snapshots) {
- 			var data = [];
-
- 			snapshots.forEach(function (snapshot) {
- 				try {
- 					var date = new Date(snapshot.created).toISOString()
-
- 					var snapshotItem = {
- 						name: 'result',
- 						attrs: {
- 							snapshotCreated: date
- 						},
- 						children: []
- 					}
-
- 					if (!snapshot.metrics) {
- 						return;
- 					}
-
- 					snapshot.metrics.forEach(function (m) {
- 						snapshotItem.children.push({
- 							name: 'metric',
- 							attrs: {
- 								name: m.name,
- 								value: m.value
- 							}
- 						})
- 					})
-
- 					if (snapshotItem.children.length > 0) {
- 						data.push(snapshotItem)
- 					}
- 				} catch (e) {
-
- 				}
- 			})
-
-            var doc = xmlFactory.create('results', data);
-
-            res.end(xmlstr);
-		});
 	}
+
+//	metricsAction: function (req, res)
+//	{
+//		res.header('Content-Type', 'application/xml');
+//
+//		var self = this;
+//		this.model.snapshots(function (snapshots) {
+// 			var data = [];
+//
+// 			snapshots.forEach(function (snapshot) {
+// 				try {
+// 					var date = new Date(snapshot.created).toISOString()
+//
+// 					var snapshotItem = {
+// 						name: 'result',
+// 						attrs: {
+// 							snapshotCreated: date
+// 						},
+// 						children: []
+// 					}
+//
+// 					if (!snapshot.metrics) {
+// 						return;
+// 					}
+//
+// 					snapshot.metrics.forEach(function (m) {
+// 						snapshotItem.children.push({
+// 							name: 'metric',
+// 							attrs: {
+// 								name: m.name,
+// 								value: m.value
+// 							}
+// 						})
+// 					})
+//
+// 					if (snapshotItem.children.length > 0) {
+// 						data.push(snapshotItem)
+// 					}
+// 				} catch (e) {
+//
+// 				}
+// 			})
+//
+//            var doc = xmlFactory.create('results', data);
+//
+//            res.end(xmlstr);
+//		});
+//	}
 }
 
 module.exports = ExportController;

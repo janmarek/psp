@@ -24,6 +24,7 @@ import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.gephi.graph.api.UndirectedGraph;
 import org.gephi.project.api.ProjectController;
+import org.gephi.project.api.Workspace;
 import org.gephi.statistics.plugin.GraphDensity;
 import org.openide.util.Lookup;
 
@@ -33,7 +34,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException;
 
 import cz.cvut.fit.gephi.snametrics.clusteringcoefficient.ClusteringMetric;
 import cz.cvut.fit.gephi.snametrics.erdosnumber.ErdosNumberMetric;
@@ -60,7 +60,7 @@ public class AvarageMetricsCreator {
         	//Init a project - and therefore a workspace
             ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
             pc.newProject();
-            pc.getCurrentWorkspace();
+            Workspace workspace = pc.getCurrentWorkspace();
 
             //Get a graph model - it exists because we have a workspace
             GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
@@ -141,6 +141,7 @@ public class AvarageMetricsCreator {
         	}
         	Lookup.getDefault().lookup(DynamicController.class).setTimeFormat(DynamicModel.TimeFormat.DATE);  
         	createAndSaveAvarageMetrics(hlasovani.get(startDate)[0], graphModel, attributeModel, centerOfTheUniverse);
+        	pc.deleteWorkspace(workspace);
         	pc.closeCurrentWorkspace();
         	pc.closeCurrentProject();
         }

@@ -16,11 +16,11 @@ public class Main {
 			Map<Integer, String[]> poslanci = mongoDatabase.getPoslanci();
 	        Map<Date, Object[]> hlasovani = mongoDatabase.getHlasovaniBySnapshot();
 			
-			GexfBaseCreator gexfBaseCreator = new GexfBaseCreator();
+//			GexfBaseCreator gexfBaseCreator = new GexfBaseCreator();
 			AvarageMetricsCreator avarageMetricsCreator = new AvarageMetricsCreator(mongoDatabase);
-			GexfFinalCreator gexfFinalCreator = new GexfFinalCreator();
-			gexfBaseCreator.generateGexf(poslanci, hlasovani);
-			gexfFinalCreator.generateGexf(poslanci, hlasovani);
+//			GexfFinalCreator gexfFinalCreator = new GexfFinalCreator();
+//			gexfBaseCreator.generateGexf(poslanci, hlasovani);
+//			gexfFinalCreator.generateGexf(poslanci, hlasovani);
 			avarageMetricsCreator.generateMetrics(poslanci, hlasovani);
 		} finally {
 			if (mongoDatabase != null) {

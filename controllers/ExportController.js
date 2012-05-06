@@ -2,7 +2,8 @@
 var controllerHelpers = require('../app/controllerHelpers'),
 	xmlFactory = require('../app/XmlBuilderFactory'),
 	request = require('request'),
-	fs = require('fs');
+	fs = require('fs'),
+	_ = require('underscore')._;
 
 // constructor
 function ExportController(gexfModel) {
@@ -18,6 +19,8 @@ ExportController.prototype = {
 		app.get('/v1/gexf', controllerHelpers.action(this, 'default'));
 		app.get('/v2/gexf', controllerHelpers.action(this, 'gexfv2'));
 		app.get('/v2/gexffinal', controllerHelpers.action(this, 'gexfv2final'));
+		app.get('/v1/gexffinal', controllerHelpers.action(this, 'gexfv2final')); // na wiki píšou, že to má bejt na jedničce
+		app.get('/v1/results', controllerHelpers.action(this, 'metrics'));
 	},
 
 	/**
@@ -76,7 +79,7 @@ ExportController.prototype = {
                         var data = [
                             {name: 'graph', attrs: {mode: "dynamic", defaultedgetype: "undirected"}, children: [
                                 {name: 'attributes',
-                                        attrs: {class: 'edge', mode: 'dynamic'},
+                                        attrs: {'class': 'edge', mode: 'dynamic'},
                                         children: [{name: 'attribute', attrs: {
                                             id: '0', title: 'weight', type: 'float'
                                         }}]},
@@ -138,6 +141,54 @@ ExportController.prototype = {
 				res.end(content);
 			}
 		})
+	},
+
+	metricsAction: function (req, res)
+	{
+		res.header('Content-Type', 'application/xml');
+
+		var self = this;
+		this.model.snapshots(function (snapshots) {
+ 			var data = [];
+
+ 			snapshots.forEach(function (snapshot) {
+ 				try {
+ 					var date = new Date(snapshot.created).toISOString()
+
+ 					var snapshotItem = {
+ 						name: 'result',
+ 						attrs: {
+ 							snapshotCreated: date
+ 						},
+ 						children: []
+ 					}
+
+ 					if (!snapshot.metrics) {
+ 						return;
+ 					}
+
+ 					snapshot.metrics.forEach(function (m) {
+ 						snapshotItem.children.push({
+ 							name: 'metric',
+ 							attrs: {
+ 								name: m.name,
+ 								value: m.value
+ 							}
+ 						})
+ 					})
+
+ 					if (snapshotItem.children.length > 0) {
+ 						data.push(snapshotItem)
+ 					}
+ 				} catch (e) {
+
+ 				}
+ 			})
+
+            var doc = xmlFactory.create('results', data);
+
+            res.end(xmlstr);
+		});
 	}
 }
 
